@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>在职天数核算 · 华为员工档案</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --paper: #F5EDDA;
+    --paper-dark: #EADFC6;
+    --ink: #2B2621;
+    --ink-soft: #6A6157;
+    --rule: #C9B79A;
+    --stamp: #A8271F;
+  }
+
+  html { height: 100%; }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 20px;
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(255,240,210,.10), transparent 60%),
+      #2C2824;
+    color: var(--ink);
+    font-family: "Songti SC", "STSong", "SimSun", "Noto Serif SC", serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---------- 纸张 ---------- */
+  .paper {
+    position: relative;
+    width: 100%;
+    max-width: 520px;
+    padding: 40px 46px 0;
+    background-color: var(--paper);
+    background-image:
+      url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScxNDAnIGhlaWdodD0nMTQwJz48ZmlsdGVyIGlkPSduJz48ZmVUdXJidWxlbmNlIHR5cGU9J2ZyYWN0YWxOb2lzZScgYmFzZUZyZXF1ZW5jeT0nMC44MicgbnVtT2N0YXZlcz0nMycgc3RpdGNoVGlsZXM9J3N0aXRjaCcvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPScxNDAnIGhlaWdodD0nMTQwJyBmaWx0ZXI9J3VybCgjbiknIG9wYWNpdHk9JzAuMzAnLz48L3N2Zz4="),
+      radial-gradient(circle at 18% 8%, rgba(255,255,255,.7), transparent 55%),
+      radial-gradient(circle at 88% 96%, rgba(150,116,66,.16), transparent 60%);
+    background-blend-mode: multiply, normal, normal;
+    box-shadow:
+      0 0 0 1px rgba(120,95,60,.35),
+      inset 0 0 70px rgba(140,108,62,.16),
+      0 22px 45px rgba(0,0,0,.5);
+    border-radius: 2px;
+  }
+
+  /* 装订孔 */
+  .paper::before,
+  .paper::after {
+    content: "";
+    position: absolute;
+    left: 16px;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: #2C2824;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,.8), 0 0 0 3px rgba(255,255,255,.25);
+  }
+  .paper::before { top: 118px; }
+  .paper::after  { bottom: 118px; }
+
+  /* ---------- 抬头 ---------- */
+  .head-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-family: "Courier New", monospace;
+    font-size: 10px;
+    letter-spacing: 1.6px;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+  }
+
+  .org { color: var(--stamp); font-weight: 700; }
+
+  h1 {
+    margin-top: 20px;
+    font-size: 31px;
+    font-weight: 700;
+    letter-spacing: 6px;
+  }
+
+  .en {
+    margin-top: 6px;
+    font-family: "Courier New", monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--ink-soft);
+  }
+
+  .divider {
+    margin: 20px 0 26px;
+    border: 0;
+    border-top: 2px solid var(--ink);
+    box-shadow: 0 3px 0 -1px var(--ink), 0 7px 0 -2px rgba(43,38,33,.45);
+  }
+
+  /* ---------- 表单 ---------- */
+  .field label {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    font-size: 13px;
+    letter-spacing: 2px;
+    color: var(--ink-soft);
+  }
+
+  .field label i {
+    font-style: normal;
+    font-family: "Courier New", monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    opacity: .7;
+  }
+
+  input[type="date"] {
+    width: 100%;
+    margin-top: 8px;
+    padding: 8px 2px;
+    font-family: "Courier New", monospace;
+    font-size: 19px;
+    letter-spacing: 3px;
+    color: var(--ink);
+    background: transparent;
+    border: 0;
+    border-bottom: 1px dashed var(--rule);
+    border-radius: 0;
+    outline: none;
+    color-scheme: light;
+    cursor: pointer;
+  }
+
+  input[type="date"]:hover { border-bottom-color: var(--ink-soft); }
+
+  input[type="date"]:focus {
+    border-bottom: 1px solid var(--stamp);
+    background: linear-gradient(to top, rgba(168,39,31,.05), transparent 70%);
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    opacity: .45;
+    cursor: pointer;
+  }
+
+  .hint {
+    min-height: 16px;
+    margin-top: 7px;
+    font-size: 11.5px;
+    letter-spacing: 1px;
+    color: var(--ink-soft);
+  }
+  .hint.error { color: var(--stamp); }
+
+  /* ---------- 结果 ---------- */
+  .result {
+    position: relative;
+    display: none;
+    padding-top: 30px;
+  }
+  .result.show { display: block; }
+
+  .total .cap {
+    font-family: "Courier New", monospace;
+    font-size: 10px;
+    letter-spacing: 2.2px;
+    color: var(--ink-soft);
+  }
+
+  .total .num {
+    margin-top: 2px;
+    font-family: "Courier New", monospace;
+    font-size: 62px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -2px;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 1px 0 rgba(255,255,255,.8);
+  }
+
+  .total .num small {
+    margin-left: 8px;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 400;
+    letter-spacing: 2px;
+  }
+
+  /* 印章 */
+  .stamp {
+    position: absolute;
+    right: -6px;
+    top: 12px;
+    width: 102px;
+    height: 102px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    border: 2.5px solid var(--stamp);
+    border-radius: 50%;
+    color: var(--stamp);
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    line-height: 1.15;
+    text-align: center;
+    opacity: 0;
+    transform: rotate(-14deg) scale(1.5);
+    mix-blend-mode: multiply;
+    pointer-events: none;
+  }
+
+  .stamp::before {
+    content: "";
+    position: absolute;
+    inset: 5px;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    opacity: .55;
+  }
+
+  .stamp em {
+    font-style: normal;
+    margin-top: 3px;
+    font-family: "Courier New", monospace;
+    font-size: 8px;
+    letter-spacing: .8px;
+    opacity: .75;
+  }
+
+  .result.show .stamp {
+    animation: stamp-in .45s cubic-bezier(.2,1.5,.5,1) .22s forwards;
+  }
+
+  @keyframes stamp-in {
+    from { opacity: 0; transform: rotate(-24deg) scale(1.6); }
+    60%  { opacity: .85; }
+    to   { opacity: .82; transform: rotate(-11deg) scale(1); }
+  }
+
+  /* 台账 */
+  .ledger {
+    width: 100%;
+    margin-top: 22px;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+
+  .ledger th {
+    width: 34%;
+    padding: 9px 0;
+    text-align: left;
+    font-weight: 400;
+    letter-spacing: 2px;
+    color: var(--ink-soft);
+    border-bottom: 1px dashed var(--rule);
+    white-space: nowrap;
+  }
+
+  .ledger td {
+    padding: 9px 0;
+    font-family: "Courier New", monospace;
+    font-size: 14px;
+    letter-spacing: .6px;
+    text-align: right;
+    border-bottom: 1px dashed var(--rule);
+  }
+
+  .ledger tr:last-child th,
+  .ledger tr:last-child td { border-bottom: 0; }
+
+  /* ---------- 页脚 ---------- */
+  .foot {
+    margin: 30px -46px 0;
+    padding: 14px 46px 18px;
+    border-top: 1px solid rgba(120,95,60,.28);
+    font-size: 10.5px;
+    letter-spacing: 1.4px;
+    color: var(--ink-soft);
+    text-align: center;
+    background: linear-gradient(to bottom, rgba(160,130,85,.07), transparent);
+    border-radius: 0 0 2px 2px;
+  }
+
+  @media (max-width: 480px) {
+    body { padding: 16px 12px; }
+    .paper { padding: 30px 26px 0; }
+    .paper::before, .paper::after { display: none; }
+    h1 { font-size: 25px; letter-spacing: 4px; }
+    .total .num { font-size: 48px; }
+    .stamp { width: 84px; height: 84px; font-size: 14px; right: 0; top: 8px; }
+    .foot { margin-left: -26px; margin-right: -26px; padding-left: 26px; padding-right: 26px; }
+  }
+</style>
+</head>
+<body>
+
+<article class="paper">
+  <div class="head-top">
+    <span class="org">HUAWEI · 人力资源档案</span>
+    <span>NO. HW／______</span>
+  </div>
+
+  <h1>在职天数核算</h1>
+  <div class="en">EMPLOYMENT DURATION RECORD</div>
+  <hr class="divider">
+
+  <div class="field">
+    <label for="joinDate">入职日期<i>DATE OF JOINING</i></label>
+    <input type="date" id="joinDate">
+    <p class="hint" id="hint"></p>
+  </div>
+
+  <div class="result" id="result">
+    <div class="stamp"><span>华为</span><span>在册</span><em id="stampDate"></em></div>
+
+    <div class="total">
+      <div class="cap">在职总天数 / TOTAL DAYS</div>
+      <div class="num"><span id="days">0</span><small>天</small></div>
+    </div>
+
+    <table class="ledger">
+      <tr><th>起算日期</th><td id="joinText">—</td></tr>
+      <tr><th>核算日期</th><td id="todayText">—</td></tr>
+      <tr><th>折合工龄</th><td id="ageText">—</td></tr>
+      <tr><th>约合周数</th><td id="weekText">—</td></tr>
+    </table>
+  </div>
+
+  <div class="foot">本档案仅供个人参考 · 按自然日计算，含入职当日</div>
+</article>
+
+<script>
+  const input  = document.getElementById('joinDate');
+  const hint   = document.getElementById('hint');
+  const result = document.getElementById('result');
+
+  const MS_DAY = 86400000;
+
+  // 归一到本地零点，规避时区偏差
+  function startOfDay(d) {
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  }
+
+  function fmt(d) {
+    return d.getFullYear() + '年' + (d.getMonth() + 1) + '月' + d.getDate() + '日';
+  }
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  function calc() {
+    const value = input.value;
+    if (!value) {
+      hint.textContent = '';
+      hint.classList.remove('error');
+      result.classList.remove('show');
+      return;
+    }
+
+    const join  = startOfDay(new Date(value + 'T00:00:00'));
+    const today = startOfDay(new Date());
+
+    if (join > today) {
+      hint.textContent = '入职日期不得晚于今日，请重新填写。';
+      hint.classList.add('error');
+      result.classList.remove('show');
+      return;
+    }
+
+    hint.textContent = '';
+    hint.classList.remove('error');
+
+    // 总天数：含入职当天
+    const totalDays = Math.round((today - join) / MS_DAY) + 1;
+
+    // 拆解年月日
+    let years  = today.getFullYear() - join.getFullYear();
+    let months = today.getMonth() - join.getMonth();
+    let days   = today.getDate() - join.getDate();
+
+    if (days < 0) {
+      months -= 1;
+      days += new Date(today.getFullYear(), today.getMonth(), 0).getDate();
+    }
+    if (months < 0) {
+      years -= 1;
+      months += 12;
+    }
+
+    document.getElementById('days').textContent = totalDays.toLocaleString('zh-CN');
+    document.getElementById('joinText').textContent = fmt(join);
+    document.getElementById('todayText').textContent = fmt(today);
+    document.getElementById('ageText').textContent = years + ' 年 ' + months + ' 个月 ' + days + ' 天';
+    document.getElementById('weekText').textContent = (totalDays / 7).toFixed(1) + ' 周';
+    document.getElementById('stampDate').textContent =
+      today.getFullYear() + '.' + pad(today.getMonth() + 1) + '.' + pad(today.getDate());
+
+    if (!result.classList.contains('show')) {
+      result.classList.add('show');
+      // 重新触发印章动画
+      const stamp = result.querySelector('.stamp');
+      stamp.style.animation = 'none';
+      void stamp.offsetWidth;
+      stamp.style.animation = '';
+    }
+  }
+
+  input.addEventListener('input', calc);
+  input.addEventListener('change', calc);
+
+  // 最大可选日期为今天
+  const now = new Date();
+  input.max = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate());
+
+  calc();
+</script>
+
+</body>
+</html>
